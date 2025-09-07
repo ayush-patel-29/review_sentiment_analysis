@@ -1,4 +1,4 @@
-from preprocessing import TextProcessor
+from .preprocessing import TextProcessor
 import pickle
 from pathlib import Path
 
@@ -26,6 +26,30 @@ class SentimentAnalyzer:
             raise
 
     def analyze_sentiment(self, text):
-        processed_text = self.text_processor.preprocess(text)
-        sentiment = self.model.predict([processed_text])
-        return sentiment[0]
+        """Analyze sentiment of text and return binary classification (0=negative, 1=positive)"""
+        try:
+            # Preprocess the text
+            processed_text = self.text_processor.preprocess(text)
+            
+            # Vectorize the processed text
+            vectorized_text = self.text_processor.vectorize([processed_text])
+            
+            # Convert sparse matrix to dense array if needed
+            if hasattr(vectorized_text, 'toarray'):
+                vectorized_text = vectorized_text.toarray()
+            
+            # Get prediction (should be 0 or 1)
+            prediction = self.model.predict(vectorized_text)
+            
+            # Ensure we return an integer (0 or 1)
+            sentiment = int(prediction[0])
+            
+            # Validate the output is binary
+            if sentiment not in [0, 1]:
+                raise ValueError(f"Model returned unexpected value: {sentiment}. Expected 0 or 1.")
+            
+            return sentiment
+            
+        except Exception as e:
+            print(f"Error in sentiment analysis: {e}")
+            raise

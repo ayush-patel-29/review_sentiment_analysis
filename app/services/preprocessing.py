@@ -25,11 +25,11 @@ class TextProcessor:
         # Removes URL
         filtered_tokens = [re.sub(r'\b(?:[a-z][a-z0-9+\-.]*):\/\/(?:[\w\-]+\.)+[a-z]{2,}(?:\/[^\s]*)?\b', ' ', word, flags=re.MULTILINE) for word in filtered_tokens]
         
-        # Removes Unwanted spaces
-        filtered_tokens = " ".join(filtered_tokens.split())
+        # Removes Unwanted spaces and join tokens
+        filtered_tokens = " ".join(filtered_tokens).split()
     
         # Lemmatization
-        lemmatized_tokens = [self.lemmatizer.lemmatize(word) for word in filtered_tokens.split()]
+        lemmatized_tokens = [self.lemmatizer.lemmatize(word) for word in filtered_tokens]
         
         return ' '.join(lemmatized_tokens)
     
