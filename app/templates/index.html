@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Sentiment Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-brain"></i> Review Sentiment Analysis</h1>
+            <p class="subtitle">Analyze the sentiment of your reviews using AI-powered natural language processing</p>
+        </header>
+
+        <main class="main-content">
+            <div class="analysis-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-comments"></i> Analyze Review Sentiment</h2>
+                </div>
+                
+                <form id="sentimentForm" class="sentiment-form">
+                    <div class="analysis-mode-selector">
+                        <h4><i class="fas fa-cog"></i> Analysis Mode</h4>
+                        <div class="mode-buttons">
+                            <button type="button" id="singleModeBtn" class="mode-btn active" data-mode="single">
+                                <i class="fas fa-file-text"></i> Single Text
+                            </button>
+                            <button type="button" id="batchModeBtn" class="mode-btn" data-mode="batch">
+                                <i class="fas fa-files"></i> Batch Analysis
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="singleAnalysisSection" class="analysis-section">
+                        <div class="input-group">
+                            <label for="reviewText">Enter Review Text:</label>
+                            <textarea 
+                                id="reviewText" 
+                                name="text" 
+                                placeholder="Enter the review text you want to analyze..." 
+                                rows="6" 
+                                required
+                            ></textarea>
+                            <div class="char-counter">
+                                <span id="charCount">0</span> characters
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="batchAnalysisSection" class="analysis-section" style="display: none;">
+                        <div class="input-group">
+                            <label for="batchTexts">Enter Multiple Review Texts (one per line):</label>
+                            <textarea 
+                                id="batchTexts" 
+                                name="batchTexts" 
+                                placeholder="Enter multiple review texts, one per line...&#10;&#10;Example:&#10;This product is amazing!&#10;Terrible quality, waste of money.&#10;It's okay, nothing special." 
+                                rows="8"
+                            ></textarea>
+                            <div class="batch-info">
+                                <div class="char-counter">
+                                    <span id="batchCharCount">0</span> characters
+                                </div>
+                                <div class="line-counter">
+                                    <span id="lineCount">0</span> texts (max 100)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" id="analyzeBtn" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Analyze Sentiment
+                        </button>
+                        <button type="button" id="clearBtn" class="btn btn-secondary">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                </form>
+
+                <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Analyzing sentiment...</span>
+                </div>
+
+                <div id="results" class="results-section" style="display: none;">
+                    <div class="results-header">
+                        <h3><i class="fas fa-chart-line"></i> Analysis Results</h3>
+                    </div>
+                    
+                    <div class="sentiment-display">
+                        <div class="sentiment-badge" id="sentimentBadge">
+                            <span id="sentimentLabel"></span>
+                        </div>
+                        <div class="confidence-score">
+                            <span class="label">Confidence:</span>
+                            <span id="confidenceScore"></span>
+                        </div>
+                    </div>
+
+                    <div class="detailed-scores">
+                        <h4>Detailed Scores:</h4>
+                        <div class="score-bars">
+                            <div class="score-item">
+                                <div class="score-header">
+                                    <span class="score-label">Positive</span>
+                                    <span class="score-value" id="positiveScore">0%</span>
+                                </div>
+                                <div class="score-bar">
+                                    <div class="score-fill positive" id="positiveFill"></div>
+                                </div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-header">
+                                    <span class="score-label">Negative</span>
+                                    <span class="score-value" id="negativeScore">0%</span>
+                                </div>
+                                <div class="score-bar">
+                                    <div class="score-fill negative" id="negativeFill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-metadata">
+                        <div class="metadata-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Analysis Time: <span id="analysisTime"></span>ms</span>
+                        </div>
+                        <div class="metadata-item">
+                            <i class="fas fa-text-width"></i>
+                            <span>Text Length: <span id="textLength"></span> characters</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Batch Results Section -->
+                <div id="batchResults" class="batch-results-section" style="display: none;">
+                    <div class="results-header">
+                        <h3><i class="fas fa-chart-bar"></i> Batch Analysis Results</h3>
+                        <div class="batch-summary">
+                            <div class="summary-item">
+                                <span class="summary-label">Total Texts:</span>
+                                <span id="totalTexts">0</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Positive:</span>
+                                <span id="positiveCount" class="positive-text">0</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Negative:</span>
+                                <span id="negativeCount" class="negative-text">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="batch-results-list" id="batchResultsList">
+                        <!-- Batch results will be populated here -->
+                    </div>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="errorText"></span>
+                </div>
+            </div>
+
+            <div class="examples-section">
+                <h3><i class="fas fa-lightbulb"></i> Try These Examples</h3>
+                <div class="examples-grid">
+                    <div class="example-card" data-text="This is absolutely amazing book!">
+                        <div class="example-badge positive">Positive</div>
+                        <p>"This is absolutely amazing book!"</p>
+                    </div>
+                    <div class="example-card" data-text="Good value for money.Must read, best book. ">
+                        <div class="example-badge positive">Positive</div>
+                        <p>"Good value for money. Must read, best book"</p>
+                    </div>
+                    <div class="example-card" data-text="Terrible experience! Never read this book.">
+                        <div class="example-badge negative">Negative</div>
+                        <p>"Terrible experience! Never read this book."</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4><i class="fas fa-info-circle"></i> About</h4>
+                    <p>This sentiment analysis tool uses advanced natural language processing to determine the emotional tone of review texts.</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Review Sentiment Analysis. Built with Flask and Natural Language Processing.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

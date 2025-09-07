@@ -6,7 +6,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
+from flask_cors import CORS
 from app.api.sentiment_routes import sentiment_bp
 from app.services.sentiment_analyzer import SentimentAnalyzer
 from app.utils.error_handlers import register_error_handlers
@@ -20,6 +21,9 @@ def create_app():
     # Configuration
     app.config['DEBUG'] = True
     app.config['JSON_SORT_KEYS'] = False
+    
+    # Enable CORS for all routes
+    CORS(app, origins=['http://localhost:5000', 'http://127.0.0.1:5000'])
     
     # Setup logging
     logging.basicConfig(level=logging.INFO)
@@ -37,6 +41,12 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(sentiment_bp, url_prefix='/api/v1')
+    
+    # Web interface route
+    @app.route('/')
+    def index():
+        """Serve the main web interface"""
+        return render_template('index.html')
     
     # Health check endpoint
     @app.route('/health')

@@ -88,17 +88,34 @@ def analyze_sentiment():
         analyzer = current_app.sentiment_analyzer
         
         # Analyze sentiment
-        sentiment = analyzer.analyze_sentiment(text)
+        result = analyzer.analyze_sentiment(text)
         
-        # Map numeric sentiment to readable labels (adjust based on your model)
-        sentiment_labels = {0: 'negative', 1: 'positive'}
-        sentiment_label = sentiment_labels.get(sentiment, 'unknown')
+        # Handle different return types from analyzer
+        if isinstance(result, dict):
+            # Detailed analysis with scores
+            sentiment_label = result.get('sentiment', 'unknown')
+            confidence = result.get('confidence', 0.0)
+            scores = result.get('scores', {'positive': 0.0, 'negative': 0.0, 'neutral': 0.0})
+        else:
+            # Simple numeric prediction
+            sentiment_labels = {0: 'negative', 1: 'positive'}
+            sentiment_label = sentiment_labels.get(result, 'unknown')
+            confidence = 0.8 if result in [0, 1] else 0.5  # Default confidence
+            
+            # Create binary scores based on prediction (no neutral)
+            if result == 1:  # positive
+                scores = {'positive': 0.9, 'negative': 0.1}
+            elif result == 0:  # negative
+                scores = {'positive': 0.1, 'negative': 0.9}
+            else:
+                scores = {'positive': 0.5, 'negative': 0.5}
         
         return jsonify({
             'sentiment': sentiment_label,
+            'confidence': float(confidence),
+            'scores': scores,
             'text': text,
-            'processed': True,
-            'raw_prediction': int(sentiment)
+            'processed': True
         })
     
     except Exception as e:
